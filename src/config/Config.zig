@@ -2843,17 +2843,21 @@ pub fn loadCliArgs(self: *Config, alloc_gpa: Allocator) !void {
         // replace the entire list with the new list.
         inline for (fields, 0..) |field, i| {
             const v = &@field(self, field);
-            const len = v.list.items.len - counter[i];
-            if (len > 0) {
-                // Note: we don't have to worry about freeing the memory
-                // that we overwrite or cut off here because its all in
-                // an arena.
-                v.list.replaceRangeAssumeCapacity(
-                    0,
-                    len,
-                    v.list.items[counter[i]..],
-                );
-                v.list.items.len = len;
+
+            // The list can be empty if it was reset, i.e. --font-family=""
+            if (v.list.items.len > 0) {
+                const len = v.list.items.len - counter[i];
+                if (len > 0) {
+                    // Note: we don't have to worry about freeing the memory
+                    // that we overwrite or cut off here because its all in
+                    // an arena.
+                    v.list.replaceRangeAssumeCapacity(
+                        0,
+                        len,
+                        v.list.items[counter[i]..],
+                    );
+                    v.list.items.len = len;
+                }
             }
         }
     }
@@ -4746,9 +4750,11 @@ pub const Keybinds = struct {
         try list.parseCLI(alloc, "ctrl+z>2=goto_tab:2");
         try list.formatEntry(formatterpkg.entryFormatter("keybind", buf.writer()));
 
+        // Note they turn into translated keys because they match
+        // their ASCII mapping.
         const want =
-            \\keybind = ctrl+z>1=goto_tab:1
-            \\keybind = ctrl+z>2=goto_tab:2
+            \\keybind = ctrl+z>two=goto_tab:2
+            \\keybind = ctrl+z>one=goto_tab:1
             \\
         ;
         try std.testing.expectEqualStrings(want, buf.items);
