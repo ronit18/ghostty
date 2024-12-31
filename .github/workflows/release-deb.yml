@@ -32,7 +32,7 @@ jobs:
 
                   echo "Version is valid: ${{ github.event.inputs.version }}"
 
-            - name: Exract the Version
+            - name: Extract the Version
               id: extract_version
               run: |
                   if [[ "${{ github.event_name }}" == "push" ]]; then
@@ -53,10 +53,32 @@ jobs:
               with:
                   # Important so that build number generation works
                   fetch-depth: 0
+
             - name: Install Dependencies
               run: |
                   sudo apt update
-                  sudo apt install -y build-essential bzip2 libbz2-dev libonig-dev libfreetype6-dev zlib1g-dev libpng-dev libgtk-4-dev libadwaita-1-dev git pandoc libglib2.0-dev pkg-config
+                  sudo apt install -y \
+                      build-essential \
+                      libbz2-dev \
+                      libbz2-1.0 \
+                      libonig-dev \
+                      libfreetype6-dev \
+                      zlib1g-dev \
+                      libpng-dev \
+                      libgtk-4-dev \
+                      libadwaita-1-dev \
+                      pandoc \
+                      libglib2.0-dev \
+                      pkg-config
+
+                  # Create symbolic links for the library
+                  sudo ln -sf /usr/lib/x86_64-linux-gnu/libbz2.so.1.0 /usr/lib/x86_64-linux-gnu/libbzip2.so
+                  sudo ln -sf /usr/lib/x86_64-linux-gnu/libbz2.a /usr/lib/x86_64-linux-gnu/libbzip2.a
+
+                  # Update library cache
+                  sudo ldconfig
+
+                  # Install zig
                   sudo snap install --beta zig --classic
 
             - name: Fetch Zig Dependencies
@@ -75,16 +97,24 @@ jobs:
                   CACHE_DIR="/tmp/offline-cache"
                   VERSION="${{ steps.extract_version.outputs.version }}"
                   echo "Version: $VERSION"
-                  zig build --prefix /usr --system "$CACHE_DIR/p" -Doptimize=ReleaseFast  -Dversion-string=${VERSION}
+
+                  # Add environment variables to help find libraries
+                  export LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH"
+                  export LIBRARY_PATH="/usr/lib/x86_64-linux-gnu:$LIBRARY_PATH"
+                  export C_INCLUDE_PATH="/usr/include:$C_INCLUDE_PATH"
+                  export CPLUS_INCLUDE_PATH="/usr/include:$CPLUS_INCLUDE_PATH"
+
+                  # x86_64-linux-gnu
+                  zig build --prefix $(pwd)/local-install --system "$CACHE_DIR/p" -Doptimize=ReleaseFast -Dversion-string=${VERSION} -Dcpu=baseline 
                   if [ $? -ne 0 ]; then
-                      echo "Build failed!"
+                      echo "Build failed in x86_64-linux-gnu!"
                       exit 1
                   fi
 
             - name: Build DEB Package
               run: |
                   BUILD_DIR="$(pwd)/build"
-                  DEB_DIR="$BUILD_DIR/${APP_NAME}_${VERSION}_${ARCH}"
+                  DEB_DIR="$BUILD_DIR/ghostty-${{ steps.extract_version.outputs.version }}-amd64"
                   DESTDIR="$DEB_DIR/usr"
                   BIN_DIR="$DESTDIR/bin"
                   DESKTOP_DIR="$DEB_DIR/usr/share/applications"
