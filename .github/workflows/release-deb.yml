@@ -56,7 +56,7 @@ jobs:
             - name: Install Dependencies
               run: |
                   sudo apt update
-                  sudo apt install -y build-essential bzip2 libfreetype6-dev zlib1g-dev libpng-dev libgtk-4-dev libadwaita-1-dev git pandoc libglib2.0-dev pkg-config libonig-dev
+                  sudo apt install -y build-essential bzip2 libbz2-dev libonig-dev libfreetype6-dev zlib1g-dev libpng-dev libgtk-4-dev libadwaita-1-dev git pandoc libglib2.0-dev pkg-config
                   sudo snap install --beta zig --classic
 
             - name: Fetch Zig Dependencies
@@ -75,7 +75,7 @@ jobs:
                   CACHE_DIR="/tmp/offline-cache"
                   VERSION="${{ steps.extract_version.outputs.version }}"
                   echo "Version: $VERSION"
-                  zig build --prefix /usr --system "$CACHE_DIR/p" -Doptimize=ReleaseFast -Dcpu=baseline -Dversion-string=${VERSION}
+                  zig build --prefix /usr --system "$CACHE_DIR/p" -Doptimize=ReleaseFast  -Dversion-string=${VERSION}
                   if [ $? -ne 0 ]; then
                       echo "Build failed!"
                       exit 1
