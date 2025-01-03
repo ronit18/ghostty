@@ -105,8 +105,8 @@ jobs:
         with:
           name: source-tarball
           path: |-
-            "ghostty-${{ env.GHOSTTY_VERSION }}.tar.gz"
-            "ghostty-${{ env.GHOSTTY_VERSION }}.tar.gz.minisig"
+            ghostty-${{ env.GHOSTTY_VERSION }}.tar.gz
+            ghostty-${{ env.GHOSTTY_VERSION }}.tar.gz.minisig
             ghostty-source.tar.gz
             ghostty-source.tar.gz.minisig
 
@@ -360,8 +360,8 @@ jobs:
         run: |
           mkdir blob
           mkdir -p blob/${GHOSTTY_VERSION}
-          mv "ghostty-${GHOSTTY_VERSION}.tar.gz blob/${GHOSTTY_VERSION}/ghostty-${GHOSTTY_VERSION}.tar.gz"
-          mv ghostty-${GHOSTTY_VERSION}.tar.gz.minisig blob/${GHOSTTY_VERSION}/ghostty-${GHOSTTY_VERSION}.tar.gz.minisig
+          mv "ghostty-${GHOSTTY_VERSION}.tar.gz" blob/${GHOSTTY_VERSION}/ghostty-${GHOSTTY_VERSION}.tar.gz
+          mv "ghostty-${GHOSTTY_VERSION}.tar.gz.minisig" blob/${GHOSTTY_VERSION}/ghostty-${GHOSTTY_VERSION}.tar.gz.minisig
           mv ghostty-source.tar.gz blob/${GHOSTTY_VERSION}/ghostty-source.tar.gz
           mv ghostty-source.tar.gz.minisig blob/${GHOSTTY_VERSION}/ghostty-source.tar.gz.minisig
           mv ghostty-macos-universal.zip blob/${GHOSTTY_VERSION}/ghostty-macos-universal.zip
